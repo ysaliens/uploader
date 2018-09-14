@@ -57,6 +57,7 @@ Use `docker-compose-yml` to get a MongoDB instance.
 
 ## TO-DOs
 * __Automated unit testing__ Out of time, will be adding it soon. Golang has very good support of testing natively.
+* __Improve resilience__ Uploader is currently brittle and will crash a user session (server lives) if an Excel file is of the wrong formatting.
 * __Optimize Docker images__
 * __All the @TO-DOs__ scattered across the code.
 * __UI Improvements__ The UI could use a lot of love. Since Golang cannot run client-side code, adding some Javascript and a new design would really help.
