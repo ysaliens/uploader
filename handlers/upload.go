@@ -99,6 +99,9 @@ func processXLSX(file string, budgetCodes map[string]*BudgetCode) {
 		re := regexp.MustCompile("(\\d{4})") //Get year from "OPEX Monthly Spend (YEAR)"
 		vesselName := sheet.Rows[0].Cells[1].String()
 		yearString := sheet.Rows[1].Cells[1].String()
+		if len(yearString) == 0 || len(vesselName) == 0 {
+			return // If we can't find name or year, sheet is bad
+		}
 		year := re.FindAllString(yearString, -1)[0]
 		log.Printf("Name: %s Year: %s\n", vesselName, year)
 
