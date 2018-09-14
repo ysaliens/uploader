@@ -25,7 +25,8 @@ If missing dependencies (or used git clone), run `go get -v ./...` to get all de
 ## Run 
 * `mongod --dbpath "$GOPATH/src/github.com/ysaliens/uploader/db` to start database (or use provided `docker-compose.yml`)
 * `./uploader.exe` to start server (separate window)
-* Navigate to `http://localhost:8080`
+* Navigate to `http://localhost:8080`  
+
 ![UI](/files/config/UI.PNG)
 
 ## Architecture
