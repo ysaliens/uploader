@@ -58,7 +58,7 @@ Use `docker-compose-yml` to get a MongoDB instance.
 ## TO-DOs
 Uploader was written in <3 days - TO-DOs are below:
 * __Automated unit testing__ Out of time, will be adding it soon. Golang has very good support of testing natively.
-* __Split big functions__
+* __Split long functions__ into smaller, modular functions - mostly in uploader.go
 * __Improve resilience__ Uploader is currently brittle and will crash a user session (server lives) if an Excel file is of the wrong formatting.
 * __Optimize Docker images__
 * __All the @TO-DOs__ scattered across the code.
