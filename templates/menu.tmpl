@@ -1,0 +1,28 @@
+<html>
+  <head>
+         <title>Upload a File</title>
+  </head>
+  <body>
+<form enctype="multipart/form-data" action={{ .upload }} method="post">
+          {{/* 1. File input */}}
+          <input type="file" name="uploadfile" />
+ 
+          {{/* 2. Submit button */}}
+          <input type="submit" value="upload file" />
+</form>
+{{ .status }}
+<form enctype="multipart/form-data" action={{ .download }} method="post">
+          <br /><br />
+          {{/* Input */}}
+          Vessel Name:<input type="txt" name="name"><br />
+          Year:<input type="number" name="year"><br />
+          Budget Code:<input type="txt" name="code"><br />
+ 
+          {{/* 2. Submit button */}}
+          <input type="submit" value="Get Data" />
+</form>
+
+
+ 
+  </body>
+  </html>
