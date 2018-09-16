@@ -82,7 +82,6 @@ func UploadFile(address string, budgetCodes map[string]*BudgetCode) gin.HandlerF
 }
 
 func processXLSX(file string, budgetCodes map[string]*BudgetCode) {
-	// @TODO This is currently very brittle if xlsx format is off
 	xlFile, err := xlsx.OpenFile(file)
 	if err != nil {
 		log.Println(err)

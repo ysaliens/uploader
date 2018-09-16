@@ -15,6 +15,7 @@ import (
 )
 
 // POST /upload tests
+// @TODO Mock db setup for last cases
 func TestUpload(t *testing.T) {
 
 	// Setup
@@ -57,7 +58,8 @@ func TestUpload(t *testing.T) {
 	})
 
 	// Skips .xlsx files with bad format
-	// @ TODO - Check nothing got added in mock db
+	// @TODO Gin isn't saving files running as test, investigate
+	// @TODO - Check nothing got added in mock db
 	testFile = "../files/test/BadFormat.xlsx"
 	file, err = os.Open(testFile)
 	if err != nil {
@@ -79,7 +81,8 @@ func TestUpload(t *testing.T) {
 	})
 
 	// Correctly processes an xlsx file
-	// @ TODO - Check mock db has records
+	// @TODO Gin isn't saving files running as test, investigate
+	// @TODO - Check mock db has records
 	testFile = "../files/test/test.xlsx"
 	file, err = os.Open(testFile)
 	if err != nil {
@@ -100,5 +103,7 @@ func TestUpload(t *testing.T) {
 		pageOK := err == nil && strings.Index(string(p), "Upload Successful") > 0
 		return statusOK && pageOK
 	})
+
+	//Add .zip test case here
 
 }
