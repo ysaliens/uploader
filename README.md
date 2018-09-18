@@ -57,7 +57,7 @@ Use `docker-compose-yml` to get a MongoDB instance.
 
 ## TO-DOs
 Uploader was written in <3 days - TO-DOs are below:
-* __Automated unit testing__ Add more cases, current coverage is ~40% of handlers. Add proper mock db and tests for model layer
+* __Automated unit testing__ Add more cases. Add proper mock db and tests for model layer
 * __Split long functions__ into smaller, modular functions - mostly in uploader.go
 * __Optimize Docker images__ Size can be optimized, combine into a single service with service dependent on db.
 * __All the @TO-DOs__ scattered across the code.
