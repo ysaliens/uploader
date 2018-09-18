@@ -45,17 +45,34 @@ type MongoDBConnection struct {
 	session *mgo.Session
 }
 
-// Create - Save a sheet of records to db keeping the same connection
+// Create - Save a file of records to db keeping the same connection
 func (mdb MongoDBConnection) Create(records []Record) {
 	mdb.session = mdb.GetSession()
 	defer mdb.session.Close()
 
-	for _, r := range records {
-		if _, err := mdb.FetchOneByNameYearCode(r.Name, r.Year, r.BudgetCode); err == nil {
-			continue // If record exists, continue to next one
+	c := mdb.session.DB(database).C(collection)
+	bulk := c.Bulk()
+	// bulk.Unordered() //Further optimizes speed if order is not important in records
+
+	// Check if first record in file is in db, if it is, upsert ALL others since they exist
+	if _, err := mdb.FetchOneByNameYearCode(records[0].Name, records[0].Year, records[0].BudgetCode); err == nil {
+		for _, r := range records {
+			update := bson.M{"$setOnInsert": bson.M{"opex": r.Opex, "category": r.Category, "budgetdesc": r.BudgetDesc,
+				"jan": r.Jan, "feb": r.Feb, "mar": r.Mar, "apr": r.Apr, "may": r.May, "jun": r.Jun,
+				"jul": r.Jul, "aug": r.Aug, "sep": r.Sep, "oct": r.Oct, "nov": r.Nov,
+				"dec": r.Dec}}
+			selector := bson.M{"name": r.Name, "year": r.Year, "budgetcode": r.BudgetCode}
+			bulk.Upsert(selector, update)
 		}
-		c := mdb.session.DB(database).C(collection)
-		c.Insert(r)
+	} else { // If first record in a file is NOT found, file hasn't been processed, insert all
+		for _, r := range records {
+			bulk.Insert(r)
+		}
+	}
+	// Run bulk operation on db
+	_, err := bulk.Run()
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -109,7 +126,7 @@ func (mdb *MongoDBConnection) GetSession() *mgo.Session {
 
 	info := &mgo.DialInfo{
 		Addrs:    []string{hosts},
-		Timeout:  10 * time.Second,
+		Timeout:  60 * time.Second,
 		Database: database,
 		Username: username,
 		Password: password,

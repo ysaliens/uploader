@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tealeg/xlsx"
@@ -56,20 +57,26 @@ func UploadFile(address string, budgetCodes map[string]*BudgetCode) gin.HandlerF
 			}
 
 			unzip(path, zipDir)
+
+			// Start a worker pool with 3 workers
+			jobs := make(chan string, 100)
+			for w := 1; w <= 10; w++ {
+				go worker(w, jobs, budgetCodes)
+			}
+
 			err = filepath.Walk(zipDir, func(currentFile string, info os.FileInfo, err error) error {
-				// @TODO This is already set for using go routines to insert all of these in parallel
-				// This should be balanced between insertion speed and server load
+				// Submit each file to be processed by worker pool using channels
 				if filepath.Ext(currentFile) == ".xlsx" {
 					log.Println("Processing file ", currentFile)
-					processXLSX(currentFile, budgetCodes)
-					delete(currentFile)
+					jobs <- currentFile
 				}
 				return nil
 			})
 			if err != nil {
 				log.Println(err)
 			}
-			delete(zipDir)
+			close(jobs)
+			go deleteFolder(zipDir) // Wait until worker threads are done and del temp folder in background
 
 		} else { // Not a zip, read Excel file and process data
 			processXLSX(path, budgetCodes)
@@ -78,6 +85,14 @@ func UploadFile(address string, budgetCodes map[string]*BudgetCode) gin.HandlerF
 		delete(path)
 		c.HTML(http.StatusOK, "menu.tmpl", gin.H{"upload": upload, "download": download, "status": status})
 
+	}
+}
+
+// Worker function
+func worker(id int, jobs <-chan string, budgetCodes map[string]*BudgetCode) {
+	for j := range jobs {
+		processXLSX(j, budgetCodes) // Process Excel file
+		delete(j)                   // Delete file
 	}
 }
 
@@ -102,7 +117,7 @@ func processXLSX(file string, budgetCodes map[string]*BudgetCode) {
 			return // If we can't find name or year, sheet is bad
 		}
 		year := re.FindAllString(yearString, -1)[0]
-		log.Printf("Name: %s Year: %s\n", vesselName, year)
+		//log.Printf("Name: %s Year: %s\n", vesselName, year)
 
 		// Body starts on row 7 in all files examined, uniformity assumption
 		for i := 6; i < len(sheet.Rows); i++ {
@@ -149,19 +164,30 @@ func processXLSX(file string, budgetCodes map[string]*BudgetCode) {
 			//log.Println(r.Name,r.Year,r.Opex,r.Category,r.BudgetCode,r.BudgetDesc,r.Jan,r.Feb,r.Mar,r.Apr,r.May,r.Jun,r.Jul,r.Aug,r.Sep,r.Oct,r.Nov,r.Dec,r.Ttl)
 			results = append(results, r)
 		}
-
-		// Save sheet to database
-		manager := models.MongoDBConnection{}
-		manager.Create(results)
-
 	}
+
+	// Save file to database
+	manager := models.MongoDBConnection{}
+	manager.Create(results)
+
 }
 
 func delete(file string) {
 	err := os.Remove(file)
-	log.Println("Deleting ", file)
+	//log.Println("Deleting ", file)
 	if err != nil {
 		log.Println(err)
+	}
+}
+
+// Wait until all go-routines have finished to delete temp folder
+func deleteFolder(file string) {
+	for {
+		err := os.Remove(file)
+		if err == nil {
+			break
+		}
+		time.Sleep(5 * time.Second) // Check every 5 sec if done
 	}
 }
 
